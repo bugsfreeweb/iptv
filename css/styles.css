@@ -97,6 +97,9 @@
             position: relative;
             width: 100vw;
             height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         .interference {
             position: absolute;
@@ -114,9 +117,9 @@
             object-fit: cover;
         }
         video.tv-screen {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+            width: 100vw;
+            height: 100vh;
+            object-fit: fill;
             background-color: black;
         }
         .controls {
