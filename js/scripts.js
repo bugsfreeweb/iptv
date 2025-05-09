@@ -37,8 +37,11 @@ let channels = [];
         const categoryFilter = document.getElementById('categoryFilter');
 
         const supportedCodecs = [
-            'video/mp4;codecs="avc1.42E01E"',
+            'video/mp4;codecs="avc1.42001E"',
             'video/mp4;codecs="avc1.64001E"',
+            'video/mp4;codecs="avc1.4D401E"',
+            'video/mp4;codecs="avc1.4D401F"',
+            'audio/mp4;codecs="mp4a.40.2"',
             'application/vnd.apple.mpegurl'
         ];
 
@@ -297,13 +300,13 @@ let channels = [];
                 const tempVideo = document.createElement('video');
                 let timeoutId = setTimeout(() => {
                     tempVideo.remove();
-                    resolve(true); // Default to online if timeout occurs
-                }, 2000);
+                    resolve(true); // Default to online if timeout
+                }, 1000); // Reduced timeout to 1s
 
                 const handleError = (errorType) => {
                     clearTimeout(timeoutId);
                     tempVideo.remove();
-                    resolve(errorType === 'http' || errorType === 'hls' ? false : true); // Only mark offline for specific errors
+                    resolve(errorType === 'http' || errorType === 'hls' ? false : true);
                 };
 
                 if (url.endsWith('.mpd')) {
@@ -347,58 +350,13 @@ let channels = [];
                 } else {
                     clearTimeout(timeoutId);
                     tempVideo.remove();
-                    resolve(true); // Assume online for unsupported formats
+                    resolve(true);
                 }
             });
         }
 
         async function canAccessDRM(url) {
-            if (!navigator.requestMediaKeySystemAccess) {
-                return true; // Allow playback if DRM is unsupported
-            }
-
-            const keySystems = [
-                { 
-                    keySystem: 'com.widevine.alpha', 
-                    config: [{ 
-                        initDataTypes: ['cenc'], 
-                        videoCapabilities: [{ 
-                            contentType: 'video/mp4', 
-                            robustness: '' 
-                        }] 
-                    }] 
-                },
-                { 
-                    keySystem: 'com.microsoft.playready', 
-                    config: [{ 
-                        initDataTypes: ['cenc'], 
-                        videoCapabilities: [{ 
-                            contentType: 'video/mp4', 
-                            robustness: '' 
-                        }] 
-                    }] 
-                },
-                { 
-                    keySystem: 'com.apple.fps.1_0', 
-                    config: [{ 
-                        initDataTypes: ['cenc'], 
-                        videoCapabilities: [{ 
-                            contentType: 'application/vnd.apple.mpegurl', 
-                            robustness: '' 
-                        }] 
-                    }] 
-                }
-            ];
-
-            for (const { keySystem, config } of keySystems) {
-                try {
-                    await navigator.requestMediaKeySystemAccess(keySystem, config);
-                    return true; // Proceed if any key system works
-                } catch (error) {
-                    continue;
-                }
-            }
-            return true; // Allow playback even if DRM fails
+            return true; // Disabled DRM check to avoid SecurityError
         }
 
         async function loadStream(url, index = 0, retries = 2) {
@@ -417,11 +375,6 @@ let channels = [];
                 return;
             }
 
-            const canPlayDRM = await canAccessDRM(url);
-            if (!canPlayDRM && (url.endsWith('.mpd') || url.endsWith('.m3u8'))) {
-                console.warn(`Proceeding with stream at index ${index} despite DRM restrictions.`);
-            }
-
             cleanupStreams();
             interference.style.display = 'block';
             currentChannelIndex = index;
@@ -429,7 +382,7 @@ let channels = [];
             const tryLoad = async () => {
                 let canPlay = false;
                 if (url.endsWith('.mpd')) {
-                    canPlay = true;
+                    canPlay = supportedCodecs.some(codec => dashjs.MediaPlayer().getCodecSupported(codec.split(';')[1]));
                 } else if (Hls.isSupported() && url.endsWith('.m3u8')) {
                     canPlay = true;
                 } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl') && url.endsWith('.m3u8')) {
@@ -442,6 +395,12 @@ let channels = [];
 
                 if (url.endsWith('.mpd')) {
                     dashInstance = dashjs.MediaPlayer().create();
+                    dashInstance.updateSettings({
+                        streaming: {
+                            abr: { autoSwitchBitrate: { video: true } },
+                            delay: { liveDelayFragmentCount: 4 }
+                        }
+                    });
                     dashInstance.initialize(videoPlayer, url, true);
                     dashInstance.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
                         interference.style.display = 'none';
@@ -584,7 +543,7 @@ let channels = [];
             return channels.filter(c => c.url);
         }
 
-        async function processChannelsInChunks(newChannels, chunkSize = 500) {
+        async function processChannelsInChunks(newChannels, chunkSize = 50) {
             const total = newChannels.length;
             let processed = 0;
             channels = [];
@@ -592,11 +551,22 @@ let channels = [];
             loadingOverlay.classList.add('active');
             loadingProgress.textContent = '0%';
 
-            channels = newChannels.map(channel => ({ ...channel, online: undefined }));
-            processed = total;
+            for (let i = 0; i < newChannels.length; i += chunkSize) {
+                const chunk = newChannels.slice(i, i + chunkSize);
+                await Promise.all(chunk.map(async (channel, idx) => {
+                    try {
+                        channel.online = await checkStreamHealth(channel.url);
+                    } catch (e) {
+                        channel.online = true; // Fallback to online if check fails
+                    }
+                    processed++;
+                    const progress = Math.round((processed / total) * 100);
+                    loadingProgress.textContent = `${progress}%`;
+                }));
+            }
 
-            const progress = Math.round((processed / total) * 100);
-            loadingProgress.textContent = `${progress}%`;
+            channels = newChannels;
+            activeChannels = channels;
 
             const categories = [...new Set(channels.map(c => c.category))].sort();
             categoryFilter.innerHTML = '<option value="">All Categories</option>';
@@ -608,14 +578,17 @@ let channels = [];
             });
 
             loadingOverlay.classList.remove('active');
-            activeChannels = channels;
+            const lastIndex = parseInt(localStorage.getItem('lastChannelIndex')) || 0;
+            const lastPlaylist = localStorage.getItem('lastPlaylist') || '';
+            if (lastPlaylist && uploadHistory.includes(lastPlaylist)) {
+                multiPlaylistSelect.value = lastPlaylist;
+            }
             displayChannels();
             updateStatusBar();
 
-            const lastIndex = parseInt(localStorage.getItem('lastChannelIndex')) || 0;
             if (channels[lastIndex]) {
                 loadStream(channels[lastIndex].url, lastIndex);
-            } else {
+            } else if (channels[0]) {
                 loadStream(channels[0].url, 0);
             }
         }
@@ -632,6 +605,7 @@ let channels = [];
                     if (newChannels.length > 0) {
                         uploadHistory = [file.name, ...uploadHistory.filter(h => h !== file.name).slice(0, 9)];
                         localStorage.setItem('uploadHistory', JSON.stringify(uploadHistory));
+                        localStorage.setItem('lastPlaylist', file.name);
                         processChannelsInChunks(newChannels);
                         displayHistory();
                     } else {
@@ -655,6 +629,7 @@ let channels = [];
                         if (newChannels.length > 0) {
                             uploadHistory = [url, ...uploadHistory.filter(h => h !== url).slice(0, 9)];
                             localStorage.setItem('uploadHistory', JSON.stringify(uploadHistory));
+                            localStorage.setItem('lastPlaylist', url);
                             processChannelsInChunks(newChannels);
                             displayHistory();
                         } else {
@@ -680,6 +655,7 @@ let channels = [];
                             if (newChannels.length > 0) {
                                 uploadHistory = [inputUrl, ...uploadHistory.filter(h => h !== inputUrl).slice(0, 9)];
                                 localStorage.setItem('uploadHistory', JSON.stringify(uploadHistory));
+                                localStorage.setItem('lastPlaylist', inputUrl);
                                 processChannelsInChunks(newChannels);
                                 displayHistory();
                             } else {
@@ -743,6 +719,7 @@ let channels = [];
         }
 
         function displayChannels() {
+            const scrollPosition = channelList.scrollTop;
             channelList.innerHTML = '';
             if (!showingHistory) {
                 let displayChannels = showFavoritesOnly ? activeChannels.filter(c => favorites.some(f => f.url === c.url)) : activeChannels;
@@ -793,6 +770,8 @@ let channels = [];
                     loadedIndex = end;
                     if (loadedIndex < displayChannels.length) {
                         requestAnimationFrame(loadNextChunk);
+                    } else {
+                        channelList.scrollTop = scrollPosition; // Restore scroll position
                     }
                 }
 
@@ -834,6 +813,7 @@ let channels = [];
                     clearBtn.onclick = () => {
                         uploadHistory.splice(index, 1);
                         localStorage.setItem('uploadHistory', JSON.stringify(uploadHistory));
+                        if (uploadHistory.length === 0) localStorage.removeItem('lastPlaylist');
                         displayHistory();
                     };
                     div.appendChild(icon);
@@ -848,6 +828,7 @@ let channels = [];
         function clearAllHistory() {
             uploadHistory = [];
             localStorage.setItem('uploadHistory', JSON.stringify(uploadHistory));
+            localStorage.removeItem('lastPlaylist');
             displayHistory();
         }
 
@@ -855,6 +836,7 @@ let channels = [];
             const selected = multiPlaylistSelect.value;
             if (selected && selected.startsWith('http')) {
                 addM3UList(selected);
+                localStorage.setItem('lastPlaylist', selected);
             } else if (selected) {
                 alert('Please upload the file again to load it.');
             }
@@ -885,16 +867,30 @@ let channels = [];
             showPopup('epgPopup');
         }
 
+        function encryptStreamParam(url) {
+            const secretKey = CryptoJS.SHA256(url).toString().substr(0, 32);
+            const iv = CryptoJS.lib.WordArray.random(16);
+            const encrypted = CryptoJS.AES.encrypt(url, secretKey, { iv: iv }).toString();
+            return `${iv.toString(CryptoJS.enc.Hex)}:${encrypted}`;
+        }
+
+        function decryptStreamParam(encryptedStr) {
+            const [ivHex, encrypted] = encryptedStr.split(':');
+            const iv = CryptoJS.enc.Hex.parse(ivHex);
+            const secretKey = CryptoJS.SHA256(channels[currentChannelIndex]?.url || '').toString().substr(0, 32);
+            const decrypted = CryptoJS.AES.decrypt(encrypted, secretKey, { iv: iv }).toString(CryptoJS.enc.Utf8);
+            return decrypted;
+        }
+
         function updateURL() {
-            // Skip URL update if running locally (file:// protocol) or in srcdoc context
-            if (document.location.href.includes('about:srcdoc') || window.location.protocol === 'file:') return;
-            
+            if (window.location.protocol === 'file:' || document.location.href.includes('about:srcdoc')) return;
+
             if (currentChannelIndex >= 0 && channels[currentChannelIndex]) {
-                const channelInfo = channels[currentChannelIndex].name || channels[currentChannelIndex].url;
-                const encodedInfo = btoa(channelInfo); // Base64 encode for encryption
-                window.history.pushState({}, '', `index.html?/stream=${encodedInfo}`);
+                const streamUrl = channels[currentChannelIndex].url;
+                const encryptedParam = encryptStreamParam(streamUrl);
+                window.history.pushState({}, document.title, `index.html?/stream=${encryptedParam}`);
             } else {
-                window.history.pushState({}, '', 'index.html');
+                window.history.pushState({}, document.title, 'index.html');
             }
         }
 
@@ -912,13 +908,24 @@ let channels = [];
                 toggleHistory();
             }
 
-            // Check URL parameter on load, but skip if in srcdoc context or running locally
-            if (!document.location.href.includes('about:srcdoc') && window.location.protocol !== 'file:') {
+            uploadHistory.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item;
+                option.text = item.length > 30 ? item.substring(0, 30) + '...' : item;
+                multiPlaylistSelect.appendChild(option);
+            });
+
+            const lastPlaylist = localStorage.getItem('lastPlaylist');
+            if (lastPlaylist && uploadHistory.includes(lastPlaylist)) {
+                multiPlaylistSelect.value = lastPlaylist;
+            }
+
+            if (window.location.protocol !== 'file:' && !document.location.href.includes('about:srcdoc')) {
                 const urlParams = new URLSearchParams(window.location.search);
                 const streamParam = urlParams.get('stream');
                 if (streamParam) {
-                    const decodedInfo = atob(streamParam); // Decode Base64
-                    const channel = channels.find(c => c.name === decodedInfo || c.url === decodedInfo);
+                    const decryptedUrl = decryptStreamParam(streamParam);
+                    const channel = channels.find(c => c.url === decryptedUrl);
                     if (channel && channels.indexOf(channel) >= 0) {
                         loadStream(channel.url, channels.indexOf(channel));
                     }
