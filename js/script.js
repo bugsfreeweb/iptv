@@ -490,7 +490,6 @@ function parseTXT(data) {
 
 async function processChannelsInChunks(newChannels, chunkSize = 25) {
     const total = newChannels.length;
-    let processed = 0;
     channels = [];
 
     loadingOverlay.classList.add('active');
@@ -532,16 +531,21 @@ async function processChannelsInChunks(newChannels, chunkSize = 25) {
                 }
             }
 
-            for (let i = 0; i < channels.length; i += chunkSize) {
-                const chunk = channels.slice(i, i + chunkSize);
-                const promises = chunk.map(async (channel) => {
-                    channel.online = await checkStreamHealth(channel.url);
-                    processed++;
-                    self.postMessage({ progress: Math.round((processed / total) * 100), channel });
-                });
-                await Promise.all(promises);
+            try {
+                for (let i = 0; i < channels.length; i += chunkSize) {
+                    const chunk = channels.slice(i, i + chunkSize);
+                    const promises = chunk.map(async (channel) => {
+                        channel.online = await checkStreamHealth(channel.url);
+                        processed++;
+                        self.postMessage({ progress: Math.round((processed / total) * 100), channel });
+                        return channel;
+                    });
+                    await Promise.all(promises);
+                }
+                self.postMessage({ done: true, channels });
+            } catch (error) {
+                self.postMessage({ error: error.message });
             }
-            self.postMessage({ done: true, channels: channels });
         };
     `], { type: 'text/javascript' })));
 
@@ -555,6 +559,19 @@ async function processChannelsInChunks(newChannels, chunkSize = 25) {
             finalizeChannelProcessing();
             worker.terminate();
         }
+        if (e.data.error) {
+            console.error('Worker error:', e.data.error);
+            loadingOverlay.classList.remove('active');
+            alert('Failed to process channels: ' + e.data.error);
+            worker.terminate();
+        }
+    };
+
+    worker.onerror = (error) => {
+        console.error('Worker error:', error);
+        loadingOverlay.classList.remove('active');
+        alert('Worker failed to process channels.');
+        worker.terminate();
     };
 
     worker.postMessage({ channels: newChannels, chunkSize, total });
@@ -576,8 +593,11 @@ async function processChannelsInChunks(newChannels, chunkSize = 25) {
         const lastChannel = JSON.parse(localStorage.getItem('lastChannel') || '{}');
         if (lastChannel?.url && lastChannel?.playlist === localStorage.getItem('lastPlaylist')) {
             const index = channels.findIndex(c => c.url === lastChannel.url);
-            if (index >= 0) loadStream(channels[index].url, index);
-            else if (channels[0]) loadStream(channels[0].url, 0);
+            if (index >= 0) {
+                loadStream(channels[index].url, index);
+            } else if (channels[0]) {
+                loadStream(channels[0].url, 0);
+            }
         } else if (channels[0]) {
             loadStream(channels[0].url, 0);
         }
@@ -605,6 +625,7 @@ function handleFileUpload(event) {
             localStorage.setItem('lastPlaylist', fileName);
             processChannelsInChunks(newChannels);
             displayHistory();
+            updateURLWithStream(fileName);
         } else {
             loadingOverlay.classList.remove('active');
             alert('Invalid or empty playlist file.');
@@ -639,19 +660,30 @@ function addM3UList(url) {
                 localStorage.setItem('lastPlaylist', url);
                 processChannelsInChunks(newChannels);
                 displayHistory();
+                updateURLWithStream(url);
             } else {
                 loadingOverlay.classList.remove('active');
                 alert('Invalid or empty playlist.');
             }
         })
         .catch(err => {
-            loadingOverlay.classList.remove('active');
+            loading |Overlay.classList.remove('active');
             alert('Failed to load playlist URL: ' + err.message);
         });
 }
 
 function toggleDefaultPlaylist() {
-    if (document.getElementById('defaultPlaylistToggle').checked) addM3UList(defaultPlaylistUrl);
+    if (document.getElementById('defaultPlaylistToggle').checked) {
+        addM3UList(defaultPlaylistUrl);
+    } else {
+        // Clear current playlist if toggle is turned off
+        channels = [];
+        activeChannels = [];
+        currentChannelIndex = -1;
+        cleanupStreams();
+        displayChannels();
+        updateStatusBar();
+    }
 }
 
 function toggleFavorite(channel, index) {
@@ -831,7 +863,39 @@ function updateURL() {
     }
 }
 
-// Initialize default playlist if none loaded
-if (!localStorage.getItem('lastPlaylist')) {
-    addM3UList(defaultPlaylistUrl);
+function updateURLWithStream(streamUrl) {
+    try {
+        const encodedStream = btoa(streamUrl);
+        history.replaceState(null, '', `?stream=${encodedStream}`);
+    } catch (e) {
+        console.log('Failed to update URL with stream:', e);
+    }
 }
+
+function decryptStreamLink(encoded) {
+    try {
+        return atob(encoded);
+    } catch (e) {
+        console.error('Failed to decrypt stream link:', e);
+        return null;
+    }
+}
+
+function initializeApp() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const stream = urlParams.get('stream');
+
+    if (stream) {
+        const decryptedUrl = decryptStreamLink(stream);
+        if (decryptedUrl && decryptedUrl.startsWith('http')) {
+            addM3UList(decryptedUrl);
+        } else {
+            alert('Invalid or corrupted stream link.');
+        }
+    }
+    // No automatic loading of lastPlaylist or defaultPlaylistUrl
+    displayHistory();
+}
+
+// Initialize the app
+initializeApp();
