@@ -116,8 +116,8 @@ To use this player, you need:
 
 ## Roadmap 🗺️
 
-- [ ] Add DRM support for protected streams.
-- [ ] Enhance EPG integration with channel logos and thumbnails.
+- [OK] Add DRM support for protected streams.
+- [OK] Enhance EPG integration with channel logos and thumbnails.
 - [ ] Add multi-language support for UI.
 - [ ] Implement a server-side backend for playlist management.
 
