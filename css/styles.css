@@ -100,21 +100,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-        }
-        .interference {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
-            z-index: 10;
-        }
-        .interference img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            cursor: pointer;
         }
         video.tv-screen {
             width: 100vw;
@@ -462,5 +448,45 @@
         @media (orientation: portrait) and (max-width: 768px) {
             .channel-list, .history-list {
                 max-height: calc(100vh - 280px);
+            }
+        }
+
+        @media (orientation: landscape) and (max-width: 1024px) {
+            .sidebar {
+                width: 60vw;
+                max-width: 250px;
+            }
+            .channel-list, .history-list {
+                max-height: calc(100vh - 300px);
+            }
+            .sidebar-section label,
+            .channel-name,
+            .history-name,
+            .status-item {
+                font-size: 11px;
+            }
+            .channel-logo {
+                width: 28px;
+                height: 28px;
+            }
+            .channel-item, .history-item {
+                padding: 5px;
+            }
+            .sidebar input[type="text"] {
+                padding: 5px;
+                font-size: 11px;
+            }
+            .load-url-btn {
+                padding: 5px;
+            }
+            .file-upload label {
+                padding: 5px;
+            }
+            .status-item {
+                padding: 3px 5px;
+            }
+            .datetime {
+                font-size: 11px;
+                padding: 2px 5px;
             }
         }

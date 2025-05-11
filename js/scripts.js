@@ -12,7 +12,6 @@ let channels = [];
         const videoPlayer = document.getElementById('videoPlayer');
         const sidebar = document.getElementById('sidebar');
         const channelList = document.getElementById('channelList');
-        const interference = document.getElementById('interference');
         const popupOverlay = document.getElementById('popupOverlay');
         const historyPopup = document.getElementById('historyPopup');
         const epgPopup = document.getElementById('epgPopup');
@@ -23,7 +22,6 @@ let channels = [];
         const fileInput = document.getElementById('fileInput');
         const qualitySelector = document.getElementById('qualitySelector');
         const sleepTimer = document.getElementById('sleepTimer');
-        const themeButton = document.getElementById('themeButton');
         const controls = document.getElementById('controls');
         const totalChannelsSpan = document.getElementById('totalChannels');
         const onlineChannelsSpan = document.getElementById('onlineChannels');
@@ -48,6 +46,42 @@ let channels = [];
         const themes = ['light', 'dark', 'ocean-blue', 'emerald-green', 'slate-gray'];
         let currentThemeIndex = 0;
 
+        // Event Listeners for Buttons
+        document.getElementById('sidebarToggleBtn').addEventListener('click', toggleSidebar);
+        document.getElementById('favoritesToggleBtn').addEventListener('click', toggleFavorites);
+        document.getElementById('themeCycleBtn').addEventListener('click', cycleTheme);
+        document.getElementById('fullscreenToggleBtn').addEventListener('click', toggleFullscreen);
+        document.getElementById('pipToggleBtn').addEventListener('click', togglePiP);
+        document.getElementById('epgShowBtn').addEventListener('click', showEPG);
+        document.getElementById('loadUrlBtn').addEventListener('click', addM3UList);
+        document.getElementById('closePopupBtn').addEventListener('click', hidePopup);
+        document.getElementById('closeEpgPopupBtn').addEventListener('click', hidePopup);
+        document.getElementById('showAllChannelsBtn').addEventListener('click', showAllChannels);
+        document.getElementById('showOnlineChannelsBtn').addEventListener('click', showOnlineChannels);
+        document.getElementById('showOfflineChannelsBtn').addEventListener('click', showOfflineChannels);
+        urlInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addM3UList(); });
+        fileInput.addEventListener('change', handleFileUpload);
+        qualitySelector.addEventListener('change', changeQuality);
+        sleepTimer.addEventListener('change', setSleepTimer);
+        categoryFilter.addEventListener('change', filterByCategory);
+        searchBar.addEventListener('input', filterChannels);
+        multiPlaylistSelect.addEventListener('change', loadSelectedPlaylist);
+        document.getElementById('defaultPlaylistToggle').addEventListener('change', toggleDefaultPlaylist);
+        document.getElementById('historyToggle').addEventListener('change', toggleHistory);
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('active');
+        }
+
+        function toggleHistory() {
+            showingHistory = document.getElementById('historyToggle').checked;
+            if (showingHistory) {
+                displayHistory();
+            } else {
+                displayChannels();
+            }
+        }
+
         function cycleTheme() {
             currentThemeIndex = (currentThemeIndex + 1) % themes.length;
             const theme = themes[currentThemeIndex];
@@ -57,7 +91,7 @@ let channels = [];
         }
 
         function updateThemeIcon(theme) {
-            const themeIcon = themeButton.querySelector('svg');
+            const themeIcon = document.getElementById('themeCycleBtn').querySelector('svg');
             if (theme === 'dark') {
                 themeIcon.innerHTML = '<path d="M12 2a10 10 0 00-3.16 19.4c.6.12 1.21.2 1.84.2 4.41 0 8-3.59 8-8a10 10 0 00-14.84-8.36 9.91 9.91 0 007.16-2.24z"/>';
             } else {
@@ -150,11 +184,12 @@ let channels = [];
         function handleGestures() {
             const swipeDistanceX = touchEndX - touchStartX;
             const swipeDistanceY = touchEndY - touchStartY;
-            const isMobile = window.innerWidth <= 768;
+            const isMobile = window.innerWidth <= 1024;
             const tvFrameRect = tvFrame.getBoundingClientRect();
 
             if (isMobile) {
-                if (touchStartX > window.innerWidth - 50 && swipeDistanceX < -50) {
+                const edgeThreshold = window.innerWidth * 0.1;
+                if (touchStartX > window.innerWidth - edgeThreshold && swipeDistanceX < -50) {
                     toggleSidebar();
                 }
                 if (sidebar.classList.contains('active') && swipeDistanceX > 50) {
@@ -189,6 +224,12 @@ let channels = [];
             }
         }
 
+        tvFrame.addEventListener('click', (e) => {
+            if (e.target !== controls && !controls.contains(e.target)) {
+                toggleSidebar();
+            }
+        });
+
         function showPopup(popupId) {
             popupOverlay.style.display = 'block';
             document.getElementById(popupId).style.display = 'block';
@@ -200,32 +241,11 @@ let channels = [];
             epgPopup.style.display = 'none';
         }
 
-        function toggleSidebar() {
-            sidebar.classList.toggle('active');
-        }
-
         function toggleFavorites() {
             showFavoritesOnly = !showFavoritesOnly;
             channelFilter = 'all';
             displayChannels();
             updateStatusBar();
-        }
-
-        function toggleTheme() {
-            cycleTheme();
-        }
-
-        function toggleHistory() {
-            showingHistory = document.getElementById('historyToggle').checked;
-            if (showingHistory) {
-                channelList.classList.remove('channel-list');
-                channelList.classList.add('history-list');
-                displayHistory();
-            } else {
-                channelList.classList.remove('history-list');
-                channelList.classList.add('channel-list');
-                displayChannels();
-            }
         }
 
         function toggleFullscreen() {
@@ -273,11 +293,9 @@ let channels = [];
         }
 
         function setSleepTimer() {
-            if (sleepTimer) {
-                const time = parseInt(sleepTimer.value);
-                if (time > 0) {
-                    setTimeout(() => videoPlayer.pause(), time * 60 * 1000);
-                }
+            const time = parseInt(sleepTimer.value);
+            if (time > 0) {
+                setTimeout(() => videoPlayer.pause(), time * 60 * 1000);
             }
         }
 
@@ -300,13 +318,13 @@ let channels = [];
                 const tempVideo = document.createElement('video');
                 let timeoutId = setTimeout(() => {
                     tempVideo.remove();
-                    resolve(true); // Default to online if timeout
-                }, 1000); // Reduced timeout to 1s
+                    resolve(true);
+                }, 1000);
 
                 const handleError = (errorType) => {
                     clearTimeout(timeoutId);
                     tempVideo.remove();
-                    resolve(errorType === 'http' || errorType === 'hls' ? false : true);
+                    resolve(errorType === 'http' || errorType === 'hls' || errorType === 'cors' || errorType === '404' ? false : true);
                 };
 
                 if (url.endsWith('.mpd')) {
@@ -319,7 +337,8 @@ let channels = [];
                         resolve(true);
                     });
                     tempDash.on(dashjs.MediaPlayer.events.ERROR, (e) => {
-                        if (e.error.code === 'HTTP_ERROR') handleError('http');
+                        if (e.error.code === 'HTTP_ERROR' || e.error.message.includes('404')) handleError('404');
+                        else if (e.error.message.includes('CORS')) handleError('cors');
                         else handleError('other');
                     });
                 } else if (Hls.isSupported() && url.endsWith('.m3u8')) {
@@ -334,6 +353,8 @@ let channels = [];
                     });
                     tempHls.on(Hls.Events.ERROR, (event, data) => {
                         if (data.details === 'manifestLoadError' || data.details === 'networkError') handleError('hls');
+                        else if (data.response?.code === 404) handleError('404');
+                        else if (data.networkDetails?.message?.includes('CORS')) handleError('cors');
                         else handleError('other');
                     });
                 } else if (tempVideo.canPlayType('application/vnd.apple.mpegurl') && url.endsWith('.m3u8')) {
@@ -345,6 +366,7 @@ let channels = [];
                     };
                     tempVideo.onerror = (e) => {
                         if (e.target.error.code === MediaError.MEDIA_ERR_NETWORK) handleError('http');
+                        else if (e.target.error.message?.includes('CORS')) handleError('cors');
                         else handleError('other');
                     };
                 } else {
@@ -356,7 +378,7 @@ let channels = [];
         }
 
         async function canAccessDRM(url) {
-            return true; // Disabled DRM check to avoid SecurityError
+            return true;
         }
 
         async function loadStream(url, index = 0, retries = 2) {
@@ -369,14 +391,12 @@ let channels = [];
                 tryNextStream(index + 1);
                 return;
             } else if (!channels[index].online) {
-                interference.style.display = 'none';
-                alert('No valid streams available.');
+                alert('No valid streams available. Some streams may be blocked by CORS or unavailable (404). Please try a different playlist or host the page on a server.');
                 updateURL();
                 return;
             }
 
             cleanupStreams();
-            interference.style.display = 'block';
             currentChannelIndex = index;
 
             const tryLoad = async () => {
@@ -398,12 +418,12 @@ let channels = [];
                     dashInstance.updateSettings({
                         streaming: {
                             abr: { autoSwitchBitrate: { video: true } },
-                            delay: { liveDelayFragmentCount: 4 }
+                            delay: { liveDelayFragmentCount: 4 },
+                            protection: { robustnessLevel: '' }
                         }
                     });
                     dashInstance.initialize(videoPlayer, url, true);
                     dashInstance.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
-                        interference.style.display = 'none';
                         const qualities = dashInstance.getBitrateInfoListFor('video');
                         populateQualitySelector(qualities, 'dash');
                         videoPlayer.play().catch(() => {
@@ -415,8 +435,7 @@ let channels = [];
                         console.error('DASH Error:', e);
                         if (retries > 0) tryNextStream(index + 1);
                         else {
-                            interference.style.display = 'none';
-                            alert('Failed to load stream due to playback error.');
+                            alert('Failed to load stream due to playback error. Some streams may be blocked by CORS or unavailable.');
                         }
                     });
                 } else if (Hls.isSupported() && url.endsWith('.m3u8')) {
@@ -424,7 +443,6 @@ let channels = [];
                     hlsInstance.loadSource(url);
                     hlsInstance.attachMedia(videoPlayer);
                     hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-                        interference.style.display = 'none';
                         populateQualitySelector(hlsInstance.levels, 'hls');
                         videoPlayer.play().catch(() => {
                             videoPlayer.muted = true;
@@ -432,19 +450,17 @@ let channels = [];
                         });
                     });
                     hlsInstance.on(Hls.Events.ERROR, (event, data) => {
-                        console.error('HLS Error:', data);
-                        if (data.details === 'manifestLoadError' || data.fatal) {
+                        console.error('HLS Error:', { details: data.details, fatal: data.fatal, type: data.type, response: data.response });
+                        if (data.details === 'manifestLoadError' || data.fatal || data.response?.code === 404 || data.networkDetails?.message?.includes('CORS')) {
                             if (retries > 0) tryNextStream(index + 1);
                             else {
-                                interference.style.display = 'none';
-                                alert('Failed to load stream due to manifest error.');
+                                alert('Failed to load stream due to manifest error, CORS restriction, or unavailable resource.');
                             }
                         }
                     });
                 } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl') && url.endsWith('.m3u8')) {
                     videoPlayer.src = url;
                     videoPlayer.addEventListener('loadedmetadata', () => {
-                        interference.style.display = 'none';
                         videoPlayer.play().catch(() => {
                             videoPlayer.muted = true;
                             videoPlayer.play();
@@ -454,8 +470,7 @@ let channels = [];
                         console.error('Native HLS Error:', e);
                         if (retries > 0) tryNextStream(index + 1);
                         else {
-                            interference.style.display = 'none';
-                            alert('Failed to load stream.');
+                            alert('Failed to load stream due to network or CORS issues.');
                         }
                     }, { once: true });
                 }
@@ -468,7 +483,6 @@ let channels = [];
                 if (retries > 0) {
                     tryNextStream(index + 1);
                 } else {
-                    interference.style.display = 'none';
                     alert('No valid streams available: ' + e.message);
                 }
             }
@@ -482,8 +496,7 @@ let channels = [];
             if (index < channels.length) {
                 loadStream(channels[index].url, index, 0);
             } else {
-                interference.style.display = 'none';
-                alert('No valid streams available.');
+                alert('No valid streams available. Some streams may be blocked by CORS or unavailable.');
                 updateURL();
             }
         }
@@ -557,7 +570,7 @@ let channels = [];
                     try {
                         channel.online = await checkStreamHealth(channel.url);
                     } catch (e) {
-                        channel.online = true; // Fallback to online if check fails
+                        channel.online = false;
                     }
                     processed++;
                     const progress = Math.round((processed / total) * 100);
@@ -594,7 +607,7 @@ let channels = [];
         }
 
         function handleFileUpload() {
-            if (fileInput && fileInput.files.length > 0) {
+            if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
                 const reader = new FileReader();
                 reader.onload = e => {
@@ -639,9 +652,9 @@ let channels = [];
                     })
                     .catch(err => {
                         loadingOverlay.classList.remove('active');
-                        alert('Failed to load playlist URL: ' + err);
+                        alert('Failed to load playlist URL: ' + err.message);
                     });
-            } else if (urlInput) {
+            } else {
                 const inputUrl = urlInput.value.trim();
                 if (inputUrl) {
                     fetch(inputUrl)
@@ -665,7 +678,7 @@ let channels = [];
                         })
                         .catch(err => {
                             loadingOverlay.classList.remove('active');
-                            alert('Failed to load playlist URL: ' + err);
+                            alert('Failed to load playlist URL: ' + err.message);
                         });
                 }
             }
@@ -731,7 +744,7 @@ let channels = [];
                 } else if (channelFilter === 'offline') {
                     displayChannels = displayChannels.filter(c => c.online === false);
                 }
-                const term = searchBar ? searchBar.value.toLowerCase() : '';
+                const term = searchBar.value.toLowerCase();
                 displayChannels = displayChannels.filter((channel) => term ? channel.name.toLowerCase().includes(term) : true);
 
                 const chunkSize = 50;
@@ -744,7 +757,13 @@ let channels = [];
                         const channelDiv = document.createElement('div');
                         channelDiv.className = 'channel-item';
                         if (index === currentChannelIndex) channelDiv.classList.add('current-channel');
-                        channelDiv.onclick = () => loadStream(channel.url, index);
+                        channelDiv.onclick = () => {
+                            const currentScroll = channelList.scrollTop;
+                            loadStream(channel.url, index);
+                            setTimeout(() => {
+                                channelList.scrollTop = currentScroll;
+                            }, 0);
+                        };
                         const logo = document.createElement('img');
                         logo.className = 'channel-logo';
                         logo.src = channel.logo || 'https://bugsfreecdn.netlify.app/BugsfreeDefault/default-logo.png';
@@ -771,7 +790,7 @@ let channels = [];
                     if (loadedIndex < displayChannels.length) {
                         requestAnimationFrame(loadNextChunk);
                     } else {
-                        channelList.scrollTop = scrollPosition; // Restore scroll position
+                        channelList.scrollTop = scrollPosition;
                     }
                 }
 
@@ -825,13 +844,6 @@ let channels = [];
             }
         }
 
-        function clearAllHistory() {
-            uploadHistory = [];
-            localStorage.setItem('uploadHistory', JSON.stringify(uploadHistory));
-            localStorage.removeItem('lastPlaylist');
-            displayHistory();
-        }
-
         function loadSelectedPlaylist() {
             const selected = multiPlaylistSelect.value;
             if (selected && selected.startsWith('http')) {
@@ -861,25 +873,34 @@ let channels = [];
                     epgContent.innerHTML = '<p>EPG data unavailable or invalid.</p>';
                     console.error('EPG fetch error:', e);
                 }
+                showPopup('epgPopup');
             } else {
                 epgContent.innerHTML = '<p>No EPG data available for this channel.</p>';
+                showPopup('epgPopup');
             }
-            showPopup('epgPopup');
         }
 
         function encryptStreamParam(url) {
-            const secretKey = CryptoJS.SHA256(url).toString().substr(0, 32);
-            const iv = CryptoJS.lib.WordArray.random(16);
-            const encrypted = CryptoJS.AES.encrypt(url, secretKey, { iv: iv }).toString();
-            return `${iv.toString(CryptoJS.enc.Hex)}:${encrypted}`;
+            const hash = CryptoJS.MD5(url).toString().substr(0, 16);
+            const key = CryptoJS.enc.Hex.parse(hash);
+            const iv = CryptoJS.lib.WordArray.random(8);
+            const encrypted = CryptoJS.DES.encrypt(url, key, { iv: iv }).toString();
+            const shortEncrypted = encrypted.substr(0, 12);
+            return `${iv.toString(CryptoJS.enc.Hex)}:${shortEncrypted}`;
         }
 
         function decryptStreamParam(encryptedStr) {
-            const [ivHex, encrypted] = encryptedStr.split(':');
-            const iv = CryptoJS.enc.Hex.parse(ivHex);
-            const secretKey = CryptoJS.SHA256(channels[currentChannelIndex]?.url || '').toString().substr(0, 32);
-            const decrypted = CryptoJS.AES.decrypt(encrypted, secretKey, { iv: iv }).toString(CryptoJS.enc.Utf8);
-            return decrypted;
+            try {
+                const [ivHex, encrypted] = encryptedStr.split(':');
+                const iv = CryptoJS.enc.Hex.parse(ivHex);
+                const hash = CryptoJS.MD5(channels[currentChannelIndex]?.url || encryptedStr).toString().substr(0, 16);
+                const key = CryptoJS.enc.Hex.parse(hash);
+                const decrypted = CryptoJS.DES.decrypt(encrypted, key, { iv: iv }).toString(CryptoJS.enc.Utf8);
+                return decrypted;
+            } catch (e) {
+                console.error('Decryption failed:', e);
+                return '';
+            }
         }
 
         function updateURL() {
@@ -888,9 +909,10 @@ let channels = [];
             if (currentChannelIndex >= 0 && channels[currentChannelIndex]) {
                 const streamUrl = channels[currentChannelIndex].url;
                 const encryptedParam = encryptStreamParam(streamUrl);
-                window.history.pushState({}, document.title, `index.html?/stream=${encryptedParam}`);
+                const newUrl = `${window.location.pathname}?stream=${encodeURIComponent(encryptedParam)}`;
+                window.history.replaceState({}, document.title, newUrl);
             } else {
-                window.history.pushState({}, document.title, 'index.html');
+                window.history.replaceState({}, document.title, window.location.pathname);
             }
         }
 
@@ -924,10 +946,14 @@ let channels = [];
                 const urlParams = new URLSearchParams(window.location.search);
                 const streamParam = urlParams.get('stream');
                 if (streamParam) {
-                    const decryptedUrl = decryptStreamParam(streamParam);
-                    const channel = channels.find(c => c.url === decryptedUrl);
-                    if (channel && channels.indexOf(channel) >= 0) {
-                        loadStream(channel.url, channels.indexOf(channel));
+                    const decryptedUrl = decryptStreamParam(decodeURIComponent(streamParam));
+                    if (decryptedUrl) {
+                        const channelIndex = channels.findIndex(c => c.url === decryptedUrl);
+                        if (channelIndex >= 0) {
+                            loadStream(decryptedUrl, channelIndex);
+                        } else {
+                            addM3UList(decryptedUrl);
+                        }
                     }
                 }
             }
