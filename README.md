@@ -2,6 +2,9 @@
 
 IPTV Player is a modern, feature-rich web application for streaming live TV, allowing users to load playlists, switch channels, and enjoy seamless playback of IPTV streams. It is powered by Bugsfree studio and designed to provide a dynamic, customizable experience with themes and smart control features.
 
+## See the DEMO :
+[IPTV Player](https://bugsfreeweb.github.io/iptv)
+
 ## Features 📋
 
 - **Stream Playback**: Supports `.m3u`, `.m3u8`, and `.mpd` formats.
