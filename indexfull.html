@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="A BirdsEYE IPTV player powered by Bugsfree">
+    <meta name="description" content="An IPTV player powered by Bugsfree">
     <meta name="theme-color" content="#0066cc">
     <title>IPTV Player! Watch LiveTV Anywhere!!</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -113,21 +113,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-        }
-        .interference {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
-            z-index: 10;
-        }
-        .interference img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            cursor: pointer;
         }
         video.tv-screen {
             width: 100vw;
@@ -477,6 +463,46 @@
                 max-height: calc(100vh - 280px);
             }
         }
+
+        @media (orientation: landscape) and (max-width: 1024px) {
+            .sidebar {
+                width: 60vw;
+                max-width: 250px;
+            }
+            .channel-list, .history-list {
+                max-height: calc(100vh - 300px);
+            }
+            .sidebar-section label,
+            .channel-name,
+            .history-name,
+            .status-item {
+                font-size: 11px;
+            }
+            .channel-logo {
+                width: 28px;
+                height: 28px;
+            }
+            .channel-item, .history-item {
+                padding: 5px;
+            }
+            .sidebar input[type="text"] {
+                padding: 5px;
+                font-size: 11px;
+            }
+            .load-url-btn {
+                padding: 5px;
+            }
+            .file-upload label {
+                padding: 5px;
+            }
+            .status-item {
+                padding: 3px 5px;
+            }
+            .datetime {
+                font-size: 11px;
+                padding: 2px 5px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -484,46 +510,43 @@
         <div class="content">
             <div class="datetime" id="datetime"></div>
             <div class="tv-frame" id="tvFrame">
-                <div class="interference" id="interference">
-                    <img src="https://birdseyetv.netlify.app/img/tv_static.gif" alt="Interference">
-                </div>
                 <video id="videoPlayer" controls class="tv-screen" poster="https://bugsfreecdn.netlify.app/BugsfreeDefault/player-poster.webp"></video>
             </div>
             <div class="controls" id="controls">
-                <button onclick="toggleSidebar()" title="Show/Hide Playlist">
+                <button id="sidebarToggleBtn" title="Show/Hide Playlist">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
                         <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h12v2H3v-2z"/>
                     </svg>
                 </button>
-                <button onclick="toggleFavorites()" title="Show/Hide Favorites">
+                <button id="favoritesToggleBtn" title="Show/Hide Favorites">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
                         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                     </svg>
                 </button>
-                <button onclick="cycleTheme()" title="Cycle Theme" id="themeButton">
+                <button id="themeCycleBtn" title="Cycle Theme">
                     <svg class="theme-icon" width="24" height="24" viewBox="0 0 24 24" fill="white">
                         <path d="M12 2a10 10 0 00-3.16 19.4c.6.12 1.21.2 1.84.2 4.41 0 8-3.59 8-8a10 10 0 00-14.84-8.36 9.91 9.91 0 007.16-2.24z"/>
                     </svg>
                 </button>
-                <button onclick="toggleFullscreen()" title="Toggle Fullscreen">
+                <button id="fullscreenToggleBtn" title="Toggle Fullscreen">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
                         <path d="M3 3h6v2H5v4H3V3zm12 0h6v6h-2V5h-4V3zm6 12h-6v2h4v4h2v-6zM3 15h6v6H3v-2h4v-4H3z"/>
                     </svg>
                 </button>
-                <button onclick="togglePiP()" title="Picture-in-Picture">
+                <button id="pipToggleBtn" title="Picture-in-Picture">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
                         <path d="M19 7h-8v6h8V7zm-8-2H5v14h14v-6h-8V5zm10 0h-2v14h2V5z"/>
                     </svg>
                 </button>
-                <button onclick="showEPG()" title="Show EPG">
+                <button id="epgShowBtn" title="Show EPG">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
                         <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 12H7v-2h4v2zm0-4H7V9h4v2zm6 4h-4v-2h4v2zm0-4h-4V9h4v2z"/>
                     </svg>
                 </button>
-                <select id="qualitySelector" onchange="changeQuality()" title="Select Quality">
+                <select id="qualitySelector" title="Select Quality">
                     <option value="-1">Auto</option>
                 </select>
-                <select id="sleepTimer" onchange="setSleepTimer()" title="Sleep Timer">
+                <select id="sleepTimer" title="Sleep Timer">
                     <option value="0">Sleep-Off</option>
                     <option value="15">15 min</option>
                     <option value="30">30 min</option>
@@ -534,14 +557,14 @@
         <div class="sidebar" id="sidebar">
             <div class="sidebar-section" style="display: flex; gap: 10px; align-items: center;">
                 <label for="defaultPlaylistToggle" style="margin: 0;">
-                    <input type="checkbox" id="defaultPlaylistToggle" onchange="toggleDefaultPlaylist()">
+                    <input type="checkbox" id="defaultPlaylistToggle">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h12v2H3v-2z"/>
                     </svg>
                     Def. Play.
                 </label>
                 <label for="historyToggle" style="margin: 0;">
-                    <input type="checkbox" id="historyToggle" onchange="toggleHistory()">
+                    <input type="checkbox" id="historyToggle">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L8 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
                     </svg>
@@ -550,8 +573,8 @@
             </div>
             <div class="sidebar-section">
                 <div class="url-load-container">
-                    <input type="text" id="urlInput" placeholder="Enter Playlist URL..." onkeypress="if(event.key === 'Enter') addM3UList()">
-                    <button onclick="addM3UList()" class="load-url-btn" title="Load URL">
+                    <input type="text" id="urlInput" placeholder="Enter Playlist URL...">
+                    <button id="loadUrlBtn" class="load-url-btn" title="Load URL">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
                             <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
                         </svg>
@@ -565,18 +588,18 @@
                     </svg>
                     Upload Playlist
                 </label>
-                <input type="file" id="fileInput" accept=".m3u,.json,.txt" onchange="handleFileUpload()">
+                <input type="file" id="fileInput" accept=".m3u,.json,.txt">
             </div>
             <div class="sidebar-section">
                 <div class="url-load-container">
-                    <select id="categoryFilter" onchange="filterByCategory()">
+                    <select id="categoryFilter">
                         <option value="">All Categories</option>
                     </select>
                 </div>
             </div>
             <div class="sidebar-section">
                 <div class="url-load-container">
-                    <input type="text" id="searchBar" placeholder="Search channels..." oninput="filterChannels()">
+                    <input type="text" id="searchBar" placeholder="Search channels...">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="position: absolute; right: 25px;">
                         <path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 001.48-5.34c-.47-2.78-2.79-5-5.59-5.34a6.505 6.505 0 00-7.27 7.27c.34 2.8 2.56 5.12 5.34 5.59a6.5 6.5 0 005.34-1.48l.27.28v.79l4.25 4.25c.41.41 1.08.41 1.49 0 .41-.41.41-1.08 0-1.49L15.5 14zM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
                     </svg>
@@ -584,19 +607,19 @@
             </div>
             <div class="channel-list" id="channelList"></div>
             <div class="status-bar" id="statusBar">
-                <div class="status-item" onclick="showAllChannels()">
+                <div class="status-item" id="showAllChannelsBtn">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/>
                     </svg>
                     <span id="totalChannels">0</span>
                 </div>
-                <div class="status-item" onclick="showOnlineChannels()">
+                <div class="status-item" id="showOnlineChannelsBtn">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15l-5-5 1.41-1.41L11 14.17l6.59-6.59L19 9l-8 8z"/>
                     </svg>
                     <span id="onlineChannels">0</span>
                 </div>
-                <div class="status-item" onclick="showOfflineChannels()">
+                <div class="status-item" id="showOfflineChannelsBtn">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm4.29-11.29L15 10l-3 3-3-3-1.29 1.29 3 3-3 3 1.29 1.29 3-3 3 3 1.29-1.29-3-3 3-3z"/>
                     </svg>
@@ -609,16 +632,16 @@
     <div class="popup-overlay" id="popupOverlay"></div>
     <div class="popup" id="historyPopup">
         <h2>Playlist History</h2>
-        <select id="multiPlaylistSelect" onchange="loadSelectedPlaylist()">
+        <select id="multiPlaylistSelect">
             <option value="">Switch Playlist</option>
         </select>
         <div id="historyList"></div>
-        <button class="close-btn" onclick="hidePopup()">×</button>
+        <button class="close-btn" id="closePopupBtn">×</button>
     </div>
     <div class="popup" id="epgPopup">
         <h2>Program Guide</h2>
         <div id="epgContent"></div>
-        <button class="close-btn" onclick="hidePopup()">×</button>
+        <button class="close-btn" id="closeEpgPopupBtn">×</button>
     </div>
     <div class="loading-overlay" id="loadingOverlay">
         <div>Loading playlist... <span id="loadingProgress">0%</span></div>
@@ -639,7 +662,6 @@
         const videoPlayer = document.getElementById('videoPlayer');
         const sidebar = document.getElementById('sidebar');
         const channelList = document.getElementById('channelList');
-        const interference = document.getElementById('interference');
         const popupOverlay = document.getElementById('popupOverlay');
         const historyPopup = document.getElementById('historyPopup');
         const epgPopup = document.getElementById('epgPopup');
@@ -650,7 +672,6 @@
         const fileInput = document.getElementById('fileInput');
         const qualitySelector = document.getElementById('qualitySelector');
         const sleepTimer = document.getElementById('sleepTimer');
-        const themeButton = document.getElementById('themeButton');
         const controls = document.getElementById('controls');
         const totalChannelsSpan = document.getElementById('totalChannels');
         const onlineChannelsSpan = document.getElementById('onlineChannels');
@@ -675,6 +696,42 @@
         const themes = ['light', 'dark', 'ocean-blue', 'emerald-green', 'slate-gray'];
         let currentThemeIndex = 0;
 
+        // Event Listeners for Buttons
+        document.getElementById('sidebarToggleBtn').addEventListener('click', toggleSidebar);
+        document.getElementById('favoritesToggleBtn').addEventListener('click', toggleFavorites);
+        document.getElementById('themeCycleBtn').addEventListener('click', cycleTheme);
+        document.getElementById('fullscreenToggleBtn').addEventListener('click', toggleFullscreen);
+        document.getElementById('pipToggleBtn').addEventListener('click', togglePiP);
+        document.getElementById('epgShowBtn').addEventListener('click', showEPG);
+        document.getElementById('loadUrlBtn').addEventListener('click', addM3UList);
+        document.getElementById('closePopupBtn').addEventListener('click', hidePopup);
+        document.getElementById('closeEpgPopupBtn').addEventListener('click', hidePopup);
+        document.getElementById('showAllChannelsBtn').addEventListener('click', showAllChannels);
+        document.getElementById('showOnlineChannelsBtn').addEventListener('click', showOnlineChannels);
+        document.getElementById('showOfflineChannelsBtn').addEventListener('click', showOfflineChannels);
+        urlInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addM3UList(); });
+        fileInput.addEventListener('change', handleFileUpload);
+        qualitySelector.addEventListener('change', changeQuality);
+        sleepTimer.addEventListener('change', setSleepTimer);
+        categoryFilter.addEventListener('change', filterByCategory);
+        searchBar.addEventListener('input', filterChannels);
+        multiPlaylistSelect.addEventListener('change', loadSelectedPlaylist);
+        document.getElementById('defaultPlaylistToggle').addEventListener('change', toggleDefaultPlaylist);
+        document.getElementById('historyToggle').addEventListener('change', toggleHistory);
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('active');
+        }
+
+        function toggleHistory() {
+            showingHistory = document.getElementById('historyToggle').checked;
+            if (showingHistory) {
+                displayHistory();
+            } else {
+                displayChannels();
+            }
+        }
+
         function cycleTheme() {
             currentThemeIndex = (currentThemeIndex + 1) % themes.length;
             const theme = themes[currentThemeIndex];
@@ -684,7 +741,7 @@
         }
 
         function updateThemeIcon(theme) {
-            const themeIcon = themeButton.querySelector('svg');
+            const themeIcon = document.getElementById('themeCycleBtn').querySelector('svg');
             if (theme === 'dark') {
                 themeIcon.innerHTML = '<path d="M12 2a10 10 0 00-3.16 19.4c.6.12 1.21.2 1.84.2 4.41 0 8-3.59 8-8a10 10 0 00-14.84-8.36 9.91 9.91 0 007.16-2.24z"/>';
             } else {
@@ -777,11 +834,12 @@
         function handleGestures() {
             const swipeDistanceX = touchEndX - touchStartX;
             const swipeDistanceY = touchEndY - touchStartY;
-            const isMobile = window.innerWidth <= 768;
+            const isMobile = window.innerWidth <= 1024;
             const tvFrameRect = tvFrame.getBoundingClientRect();
 
             if (isMobile) {
-                if (touchStartX > window.innerWidth - 50 && swipeDistanceX < -50) {
+                const edgeThreshold = window.innerWidth * 0.1;
+                if (touchStartX > window.innerWidth - edgeThreshold && swipeDistanceX < -50) {
                     toggleSidebar();
                 }
                 if (sidebar.classList.contains('active') && swipeDistanceX > 50) {
@@ -816,6 +874,12 @@
             }
         }
 
+        tvFrame.addEventListener('click', (e) => {
+            if (e.target !== controls && !controls.contains(e.target)) {
+                toggleSidebar();
+            }
+        });
+
         function showPopup(popupId) {
             popupOverlay.style.display = 'block';
             document.getElementById(popupId).style.display = 'block';
@@ -827,32 +891,11 @@
             epgPopup.style.display = 'none';
         }
 
-        function toggleSidebar() {
-            sidebar.classList.toggle('active');
-        }
-
         function toggleFavorites() {
             showFavoritesOnly = !showFavoritesOnly;
             channelFilter = 'all';
             displayChannels();
             updateStatusBar();
-        }
-
-        function toggleTheme() {
-            cycleTheme();
-        }
-
-        function toggleHistory() {
-            showingHistory = document.getElementById('historyToggle').checked;
-            if (showingHistory) {
-                channelList.classList.remove('channel-list');
-                channelList.classList.add('history-list');
-                displayHistory();
-            } else {
-                channelList.classList.remove('history-list');
-                channelList.classList.add('channel-list');
-                displayChannels();
-            }
         }
 
         function toggleFullscreen() {
@@ -900,11 +943,9 @@
         }
 
         function setSleepTimer() {
-            if (sleepTimer) {
-                const time = parseInt(sleepTimer.value);
-                if (time > 0) {
-                    setTimeout(() => videoPlayer.pause(), time * 60 * 1000);
-                }
+            const time = parseInt(sleepTimer.value);
+            if (time > 0) {
+                setTimeout(() => videoPlayer.pause(), time * 60 * 1000);
             }
         }
 
@@ -927,13 +968,13 @@
                 const tempVideo = document.createElement('video');
                 let timeoutId = setTimeout(() => {
                     tempVideo.remove();
-                    resolve(true); // Default to online if timeout
-                }, 1000); // Reduced timeout to 1s
+                    resolve(true);
+                }, 1000);
 
                 const handleError = (errorType) => {
                     clearTimeout(timeoutId);
                     tempVideo.remove();
-                    resolve(errorType === 'http' || errorType === 'hls' ? false : true);
+                    resolve(errorType === 'http' || errorType === 'hls' || errorType === 'cors' || errorType === '404' ? false : true);
                 };
 
                 if (url.endsWith('.mpd')) {
@@ -946,7 +987,8 @@
                         resolve(true);
                     });
                     tempDash.on(dashjs.MediaPlayer.events.ERROR, (e) => {
-                        if (e.error.code === 'HTTP_ERROR') handleError('http');
+                        if (e.error.code === 'HTTP_ERROR' || e.error.message.includes('404')) handleError('404');
+                        else if (e.error.message.includes('CORS')) handleError('cors');
                         else handleError('other');
                     });
                 } else if (Hls.isSupported() && url.endsWith('.m3u8')) {
@@ -961,6 +1003,8 @@
                     });
                     tempHls.on(Hls.Events.ERROR, (event, data) => {
                         if (data.details === 'manifestLoadError' || data.details === 'networkError') handleError('hls');
+                        else if (data.response?.code === 404) handleError('404');
+                        else if (data.networkDetails?.message?.includes('CORS')) handleError('cors');
                         else handleError('other');
                     });
                 } else if (tempVideo.canPlayType('application/vnd.apple.mpegurl') && url.endsWith('.m3u8')) {
@@ -972,6 +1016,7 @@
                     };
                     tempVideo.onerror = (e) => {
                         if (e.target.error.code === MediaError.MEDIA_ERR_NETWORK) handleError('http');
+                        else if (e.target.error.message?.includes('CORS')) handleError('cors');
                         else handleError('other');
                     };
                 } else {
@@ -983,7 +1028,7 @@
         }
 
         async function canAccessDRM(url) {
-            return true; // Disabled DRM check to avoid SecurityError
+            return true;
         }
 
         async function loadStream(url, index = 0, retries = 2) {
@@ -996,14 +1041,12 @@
                 tryNextStream(index + 1);
                 return;
             } else if (!channels[index].online) {
-                interference.style.display = 'none';
-                alert('No valid streams available.');
+                alert('No valid streams available. Some streams may be blocked by CORS or unavailable (404). Please try a different playlist or host the page on a server.');
                 updateURL();
                 return;
             }
 
             cleanupStreams();
-            interference.style.display = 'block';
             currentChannelIndex = index;
 
             const tryLoad = async () => {
@@ -1025,12 +1068,12 @@
                     dashInstance.updateSettings({
                         streaming: {
                             abr: { autoSwitchBitrate: { video: true } },
-                            delay: { liveDelayFragmentCount: 4 }
+                            delay: { liveDelayFragmentCount: 4 },
+                            protection: { robustnessLevel: '' }
                         }
                     });
                     dashInstance.initialize(videoPlayer, url, true);
                     dashInstance.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
-                        interference.style.display = 'none';
                         const qualities = dashInstance.getBitrateInfoListFor('video');
                         populateQualitySelector(qualities, 'dash');
                         videoPlayer.play().catch(() => {
@@ -1042,8 +1085,7 @@
                         console.error('DASH Error:', e);
                         if (retries > 0) tryNextStream(index + 1);
                         else {
-                            interference.style.display = 'none';
-                            alert('Failed to load stream due to playback error.');
+                            alert('Failed to load stream due to playback error. Some streams may be blocked by CORS or unavailable.');
                         }
                     });
                 } else if (Hls.isSupported() && url.endsWith('.m3u8')) {
@@ -1051,7 +1093,6 @@
                     hlsInstance.loadSource(url);
                     hlsInstance.attachMedia(videoPlayer);
                     hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-                        interference.style.display = 'none';
                         populateQualitySelector(hlsInstance.levels, 'hls');
                         videoPlayer.play().catch(() => {
                             videoPlayer.muted = true;
@@ -1059,19 +1100,17 @@
                         });
                     });
                     hlsInstance.on(Hls.Events.ERROR, (event, data) => {
-                        console.error('HLS Error:', data);
-                        if (data.details === 'manifestLoadError' || data.fatal) {
+                        console.error('HLS Error:', { details: data.details, fatal: data.fatal, type: data.type, response: data.response });
+                        if (data.details === 'manifestLoadError' || data.fatal || data.response?.code === 404 || data.networkDetails?.message?.includes('CORS')) {
                             if (retries > 0) tryNextStream(index + 1);
                             else {
-                                interference.style.display = 'none';
-                                alert('Failed to load stream due to manifest error.');
+                                alert('Failed to load stream due to manifest error, CORS restriction, or unavailable resource.');
                             }
                         }
                     });
                 } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl') && url.endsWith('.m3u8')) {
                     videoPlayer.src = url;
                     videoPlayer.addEventListener('loadedmetadata', () => {
-                        interference.style.display = 'none';
                         videoPlayer.play().catch(() => {
                             videoPlayer.muted = true;
                             videoPlayer.play();
@@ -1081,8 +1120,7 @@
                         console.error('Native HLS Error:', e);
                         if (retries > 0) tryNextStream(index + 1);
                         else {
-                            interference.style.display = 'none';
-                            alert('Failed to load stream.');
+                            alert('Failed to load stream due to network or CORS issues.');
                         }
                     }, { once: true });
                 }
@@ -1095,7 +1133,6 @@
                 if (retries > 0) {
                     tryNextStream(index + 1);
                 } else {
-                    interference.style.display = 'none';
                     alert('No valid streams available: ' + e.message);
                 }
             }
@@ -1109,8 +1146,7 @@
             if (index < channels.length) {
                 loadStream(channels[index].url, index, 0);
             } else {
-                interference.style.display = 'none';
-                alert('No valid streams available.');
+                alert('No valid streams available. Some streams may be blocked by CORS or unavailable.');
                 updateURL();
             }
         }
@@ -1184,7 +1220,7 @@
                     try {
                         channel.online = await checkStreamHealth(channel.url);
                     } catch (e) {
-                        channel.online = true; // Fallback to online if check fails
+                        channel.online = false;
                     }
                     processed++;
                     const progress = Math.round((processed / total) * 100);
@@ -1221,7 +1257,7 @@
         }
 
         function handleFileUpload() {
-            if (fileInput && fileInput.files.length > 0) {
+            if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
                 const reader = new FileReader();
                 reader.onload = e => {
@@ -1266,9 +1302,9 @@
                     })
                     .catch(err => {
                         loadingOverlay.classList.remove('active');
-                        alert('Failed to load playlist URL: ' + err);
+                        alert('Failed to load playlist URL: ' + err.message);
                     });
-            } else if (urlInput) {
+            } else {
                 const inputUrl = urlInput.value.trim();
                 if (inputUrl) {
                     fetch(inputUrl)
@@ -1292,7 +1328,7 @@
                         })
                         .catch(err => {
                             loadingOverlay.classList.remove('active');
-                            alert('Failed to load playlist URL: ' + err);
+                            alert('Failed to load playlist URL: ' + err.message);
                         });
                 }
             }
@@ -1358,7 +1394,7 @@
                 } else if (channelFilter === 'offline') {
                     displayChannels = displayChannels.filter(c => c.online === false);
                 }
-                const term = searchBar ? searchBar.value.toLowerCase() : '';
+                const term = searchBar.value.toLowerCase();
                 displayChannels = displayChannels.filter((channel) => term ? channel.name.toLowerCase().includes(term) : true);
 
                 const chunkSize = 50;
@@ -1371,7 +1407,13 @@
                         const channelDiv = document.createElement('div');
                         channelDiv.className = 'channel-item';
                         if (index === currentChannelIndex) channelDiv.classList.add('current-channel');
-                        channelDiv.onclick = () => loadStream(channel.url, index);
+                        channelDiv.onclick = () => {
+                            const currentScroll = channelList.scrollTop;
+                            loadStream(channel.url, index);
+                            setTimeout(() => {
+                                channelList.scrollTop = currentScroll;
+                            }, 0);
+                        };
                         const logo = document.createElement('img');
                         logo.className = 'channel-logo';
                         logo.src = channel.logo || 'https://bugsfreecdn.netlify.app/BugsfreeDefault/default-logo.png';
@@ -1398,7 +1440,7 @@
                     if (loadedIndex < displayChannels.length) {
                         requestAnimationFrame(loadNextChunk);
                     } else {
-                        channelList.scrollTop = scrollPosition; // Restore scroll position
+                        channelList.scrollTop = scrollPosition;
                     }
                 }
 
@@ -1452,13 +1494,6 @@
             }
         }
 
-        function clearAllHistory() {
-            uploadHistory = [];
-            localStorage.setItem('uploadHistory', JSON.stringify(uploadHistory));
-            localStorage.removeItem('lastPlaylist');
-            displayHistory();
-        }
-
         function loadSelectedPlaylist() {
             const selected = multiPlaylistSelect.value;
             if (selected && selected.startsWith('http')) {
@@ -1488,25 +1523,34 @@
                     epgContent.innerHTML = '<p>EPG data unavailable or invalid.</p>';
                     console.error('EPG fetch error:', e);
                 }
+                showPopup('epgPopup');
             } else {
                 epgContent.innerHTML = '<p>No EPG data available for this channel.</p>';
+                showPopup('epgPopup');
             }
-            showPopup('epgPopup');
         }
 
         function encryptStreamParam(url) {
-            const secretKey = CryptoJS.SHA256(url).toString().substr(0, 32);
-            const iv = CryptoJS.lib.WordArray.random(16);
-            const encrypted = CryptoJS.AES.encrypt(url, secretKey, { iv: iv }).toString();
-            return `${iv.toString(CryptoJS.enc.Hex)}:${encrypted}`;
+            const hash = CryptoJS.MD5(url).toString().substr(0, 16);
+            const key = CryptoJS.enc.Hex.parse(hash);
+            const iv = CryptoJS.lib.WordArray.random(8);
+            const encrypted = CryptoJS.DES.encrypt(url, key, { iv: iv }).toString();
+            const shortEncrypted = encrypted.substr(0, 12);
+            return `${iv.toString(CryptoJS.enc.Hex)}:${shortEncrypted}`;
         }
 
         function decryptStreamParam(encryptedStr) {
-            const [ivHex, encrypted] = encryptedStr.split(':');
-            const iv = CryptoJS.enc.Hex.parse(ivHex);
-            const secretKey = CryptoJS.SHA256(channels[currentChannelIndex]?.url || '').toString().substr(0, 32);
-            const decrypted = CryptoJS.AES.decrypt(encrypted, secretKey, { iv: iv }).toString(CryptoJS.enc.Utf8);
-            return decrypted;
+            try {
+                const [ivHex, encrypted] = encryptedStr.split(':');
+                const iv = CryptoJS.enc.Hex.parse(ivHex);
+                const hash = CryptoJS.MD5(channels[currentChannelIndex]?.url || encryptedStr).toString().substr(0, 16);
+                const key = CryptoJS.enc.Hex.parse(hash);
+                const decrypted = CryptoJS.DES.decrypt(encrypted, key, { iv: iv }).toString(CryptoJS.enc.Utf8);
+                return decrypted;
+            } catch (e) {
+                console.error('Decryption failed:', e);
+                return '';
+            }
         }
 
         function updateURL() {
@@ -1515,9 +1559,10 @@
             if (currentChannelIndex >= 0 && channels[currentChannelIndex]) {
                 const streamUrl = channels[currentChannelIndex].url;
                 const encryptedParam = encryptStreamParam(streamUrl);
-                window.history.pushState({}, document.title, `index.html?/stream=${encryptedParam}`);
+                const newUrl = `${window.location.pathname}?stream=${encodeURIComponent(encryptedParam)}`;
+                window.history.replaceState({}, document.title, newUrl);
             } else {
-                window.history.pushState({}, document.title, 'index.html');
+                window.history.replaceState({}, document.title, window.location.pathname);
             }
         }
 
@@ -1551,10 +1596,14 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const streamParam = urlParams.get('stream');
                 if (streamParam) {
-                    const decryptedUrl = decryptStreamParam(streamParam);
-                    const channel = channels.find(c => c.url === decryptedUrl);
-                    if (channel && channels.indexOf(channel) >= 0) {
-                        loadStream(channel.url, channels.indexOf(channel));
+                    const decryptedUrl = decryptStreamParam(decodeURIComponent(streamParam));
+                    if (decryptedUrl) {
+                        const channelIndex = channels.findIndex(c => c.url === decryptedUrl);
+                        if (channelIndex >= 0) {
+                            loadStream(decryptedUrl, channelIndex);
+                        } else {
+                            addM3UList(decryptedUrl);
+                        }
                     }
                 }
             }
