@@ -114,15 +114,6 @@ To use this player, you need:
 | `Ctrl + Arrow Right`| Next channel              |
 | `Escape`            | Close sidebar or popup    |
 
-## Roadmap 🗺️
-
-- [✔] Add DRM support for protected streams.
-- [✔] Enhance EPG integration with channel logos and thumbnails.
-- [ ] EPG (Electronic Program Guide) Visualization.
-- [ ] Offline Mode with Cached Playlists.
-- [ ] Add multi-language support for UI.
-- [ ] Implement a server-side backend for playlist management.
-
 ## Contributing 🤝
 
 Contributions are welcome! To contribute:
