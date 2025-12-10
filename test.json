@@ -1,0 +1,20 @@
+[
+                    { id: '1', name: 'BBC News', url: 'https://vs-hls-pushb-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_hd::manifest.m3u8', group: 'News', logo: 'https://logos-world.net/wp-content/uploads/2020/06/BBC-Logo.png' },
+                    { id: '2', name: 'CNN International', url: 'https://cnn-cnninternational-1-eu.rakuten.wurl.tv/playlist.m3u8', group: 'News', logo: 'https://logos-world.net/wp-content/uploads/2020/06/CNN-Logo.png' },
+                    { id: '3', name: 'Discovery Channel', url: 'https://discovery-live.edgesuite.net/out/v1/6553c9f2a9cd4c5eafce6d0df0b68e7d/master.m3u8', group: 'Documentary', logo: 'https://logos-world.net/wp-content/uploads/2020/06/Discovery-Channel-Logo.png' },
+                    { id: '4', name: 'National Geographic', url: 'https://nationalgeographic-live.edgesuite.net/out/v1/1a2b3c4d5e6f/master.m3u8', group: 'Documentary', logo: 'https://logos-world.net/wp-content/uploads/2020/06/National-Geographic-Logo.png' },
+                    { id: '5', name: 'ESPN', url: 'https://espn-live.hls.adaptive.level3.net/espn/master.m3u8', group: 'Sports', logo: 'https://logos-world.net/wp-content/uploads/2020/06/ESPN-Logo.png' },
+                    { id: '6', name: 'Fox Sports 1', url: 'https://fox-sports-1.hls.adaptive.level3.net/master.m3u8', group: 'Sports', logo: 'https://logos-world.net/wp-content/uploads/2020/06/Fox-Sports-Logo.png' },
+                    { id: '7', name: 'Cartoon Network', url: 'https://cartoonnetwork-live.hls.adaptive.level3.net/master.m3u8', group: 'Kids', logo: 'https://logos-world.net/wp-content/uploads/2020/06/Cartoon-Network-Logo.png' },
+                    { id: '8', name: 'Disney Channel', url: 'https://disney-channel.hls.adaptive.level3.net/master.m3u8', group: 'Kids', logo: 'https://logos-world.net/wp-content/uploads/2020/06/Disney-Channel-Logo.png' },
+                    { id: '9', name: 'MTV', url: 'https://mtv-live.hls.adaptive.level3.net/master.m3u8', group: 'Music', logo: 'https://logos-world.net/wp-content/uploads/2020/06/MTV-Logo.png' },
+                    { id: '10', name: 'VH1', url: 'https://vh1-live.hls.adaptive.level3.net/master.m3u8', group: 'Music', logo: 'https://logos-world.net/wp-content/uploads/2020/06/VH1-Logo.png' },
+                    { id: '11', name: 'HBO Max', url: 'https://hbo-max-live.hls.adaptive.level3.net/master.m3u8', group: 'Movies', logo: 'https://logos-world.net/wp-content/uploads/2020/06/HBO-Max-Logo.png' },
+                    { id: '12', name: 'Netflix Live', url: 'https://netflix-live.hls.adaptive.level3.net/master.m3u8', group: 'Entertainment', logo: 'https://logos-world.net/wp-content/uploads/2020/06/Netflix-Logo.png' },
+                    { id: '13', name: 'Comedy Central', url: 'https://comedy-central-live.hls.adaptive.level3.net/master.m3u8', group: 'Entertainment', logo: 'https://logos-world.net/wp-content/uploads/2020/06/Comedy-Central-Logo.png' },
+                    { id: '14', name: 'Food Network', url: 'https://food-network-live.hls.adaptive.level3.net/master.m3u8', group: 'Lifestyle', logo: 'https://logos-world.net/wp-content/uploads/2020/06/Food-Network-Logo.png' },
+                    { id: '15', name: 'Travel Channel', url: 'https://travel-channel-live.hls.adaptive.level3.net/master.m3u8', group: 'Lifestyle', logo: 'https://logos-world.net/wp-content/uploads/2020/06/Travel-Channel-Logo.png' },
+                    { id: '16', name: 'History Channel', url: 'https://history-channel-live.hls.adaptive.level3.net/master.m3u8', group: 'Documentary', logo: 'https://logos-world.net/wp-content/uploads/2020/06/History-Channel-Logo.png' },
+                    { id: '17', name: 'A&E', url: 'https://ae-live.hls.adaptive.level3.net/master.m3u8', group: 'Entertainment', logo: 'https://logos-world.net/wp-content/uploads/2020/06/AE-Network-Logo.png' },
+                    { id: '18', name: 'TLC', url: 'https://tlc-live.hls.adaptive.level3.net/master.m3u8', group: 'Lifestyle', logo: 'https://logos-world.net/wp-content/uploads/2020/06/TLC-Logo.png' }
+                ]
